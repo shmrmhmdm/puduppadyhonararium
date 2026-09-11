@@ -25,3 +25,16 @@ export const INITIAL_MEMBERS = [];
 export const INITIAL_MEETINGS = [];
 
 export const INITIAL_ATTENDANCE = {};
+
+// Initial default Super Admin (No dummy users; Admin creates other users)
+export const INITIAL_USERS = [
+  {
+    id: 'USR_ADMIN_01',
+    username: 'admin',
+    password: 'admin123',
+    name: 'സിസ്റ്റം അഡ്മിനിസ്ട്രേറ്റർ (Panchayat Admin)',
+    role: 'admin',
+    status: 'active',
+    createdAt: '2026-09-01'
+  }
+];

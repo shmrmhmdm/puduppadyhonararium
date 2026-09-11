@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { STANDING_COMMITTEES } from '../data/initialData';
 
-export default function MemberManagement({ members, onAddMember, onUpdateMember, onDeleteMember }) {
+export default function MemberManagement({ members, onAddMember, onUpdateMember, onDeleteMember, currentUser }) {
+  const isAdmin = !currentUser || currentUser.role === 'admin';
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCommittee, setFilterCommittee] = useState('ALL');
 
@@ -223,13 +224,15 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
           </select>
 
           {/* Add Member Button */}
-          <button
-            onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition active:scale-95 shrink-0"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>+ പുതിയ മെമ്പറെ ചേർക്കുക</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleOpenAddModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition active:scale-95 shrink-0"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ പുതിയ മെമ്പറെ ചേർക്കുക</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -260,28 +263,30 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
                     </div>
                   </div>
 
-                  {/* Edit & Delete Action Buttons */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => setEditingMember(JSON.parse(JSON.stringify(member)))}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition"
-                      title="Edit Member Details"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
+                  {/* Edit & Delete Action Buttons (Admin Only) */}
+                  {isAdmin && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => setEditingMember(JSON.parse(JSON.stringify(member)))}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition"
+                        title="Edit Member Details"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        if (confirm(`വാർഡ് ${member.wardNo} - ${member.name} എന്ന മെമ്പറെ ഡിലീറ്റ് ചെയ്യണോ?`)) {
-                          onDeleteMember(member.id);
-                        }
-                      }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
-                      title="Delete Member"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => {
+                          if (confirm(`വാർഡ് ${member.wardNo} - ${member.name} എന്ന മെമ്പറെ ഡിലീറ്റ് ചെയ്യണോ?`)) {
+                            onDeleteMember(member.id);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                        title="Delete Member"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Body Details */}

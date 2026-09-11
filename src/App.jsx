@@ -6,13 +6,16 @@ import AcquittanceRoll from './components/AcquittanceRoll';
 import ReportsModule from './components/ReportsModule';
 import PayrollSummary from './components/PayrollSummary';
 import MemberManagement from './components/MemberManagement';
+import UserManagement from './components/UserManagement';
+import LoginScreen from './components/LoginScreen';
 import SettingsModal from './components/SettingsModal';
 import GoogleSheetSyncModal from './components/GoogleSheetSyncModal';
 import { 
   INITIAL_MEMBERS, 
   INITIAL_MEETINGS, 
   INITIAL_ATTENDANCE, 
-  STATUTORY_RATES 
+  STATUTORY_RATES,
+  INITIAL_USERS 
 } from './data/initialData';
 import { calculateMemberMonthlyFees } from './utils/calculations';
 import { fetchGoogleSheetData, syncDataToGoogleSheet, DEFAULT_GOOGLE_SHEET_URL } from './services/googleSheetsService';
@@ -23,11 +26,38 @@ export default function App() {
   const LS_MEETINGS_KEY = 'puduppady_meetings_v11';
   const LS_ATTENDANCE_KEY = 'puduppady_attendance_v11';
   const LS_RATES_KEY = 'puduppady_rates_v11';
+  const LS_USERS_KEY = 'puduppady_users_v1';
+  const LS_AUTH_SESSION_KEY = 'puduppady_auth_session_v1';
   const LS_SHEET_URL_KEY = 'puduppady_google_sheet_url_v4';
   const LS_LAST_SYNC_KEY = 'puduppady_last_sync_time_v4';
 
-  // State
-  // State with safe normalization
+  // Current Logged-in User State
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem(LS_AUTH_SESSION_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Users State (Admin, Clerk, Viewer)
+  const [users, setUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem(LS_USERS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading saved users:', e);
+    }
+    return INITIAL_USERS;
+  });
+
+  // Members state with safe normalization
   const [members, setMembers] = useState(() => {
     try {
       const saved = localStorage.getItem(LS_MEMBERS_KEY);
@@ -114,13 +144,25 @@ export default function App() {
     const m = String(now.getMonth() + 1).padStart(2, '0');
     return `${y}-${m}`;
   });
-  const [activeTab, setActiveTab] = useState('entry'); // 'entry' | 'acquittance' | 'reports' | 'payroll' | 'members'
+  const [activeTab, setActiveTab] = useState('entry'); // 'entry' | 'acquittance' | 'reports' | 'payroll' | 'members' | 'users'
   
   // Modals
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSheetSyncOpen, setIsSheetSyncOpen] = useState(false);
 
   // Sync to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
+  }, [users]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(LS_AUTH_SESSION_KEY, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(LS_AUTH_SESSION_KEY);
+    }
+  }, [currentUser]);
+
   useEffect(() => {
     localStorage.setItem(LS_MEMBERS_KEY, JSON.stringify(members));
   }, [members]);
@@ -145,6 +187,16 @@ export default function App() {
     localStorage.setItem(LS_LAST_SYNC_KEY, lastSyncTime);
   }, [lastSyncTime]);
 
+  // Auth Handlers
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    setActiveTab('entry');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+  };
+
   // Push to Google Sheets
   const triggerGoogleSheetPush = useCallback(async (customUrl = sheetUrl, payloadOverride = null) => {
     if (!customUrl) return;
@@ -155,7 +207,8 @@ export default function App() {
         members,
         meetings,
         attendance,
-        rates
+        rates,
+        users
       };
       await syncDataToGoogleSheet(customUrl, payload);
       const nowStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -167,7 +220,7 @@ export default function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, [sheetUrl, members, meetings, attendance, rates]);
+  }, [sheetUrl, members, meetings, attendance, rates, users]);
 
   // Pull from Google Sheets (only updates if sheet has content)
   const triggerGoogleSheetPull = useCallback(async (customUrl = sheetUrl) => {
@@ -187,6 +240,9 @@ export default function App() {
       }
       if (data.rates && Object.keys(data.rates).length > 0) {
         setRates(data.rates);
+      }
+      if (data.users && data.users.length > 0) {
+        setUsers(data.users);
       }
       const nowStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       setLastSyncTime(nowStr);
@@ -219,11 +275,33 @@ export default function App() {
 
     setSyncStatus('SYNCING');
     const timer = setTimeout(() => {
-      triggerGoogleSheetPush(sheetUrl, { members, meetings, attendance, rates });
+      triggerGoogleSheetPush(sheetUrl, { members, meetings, attendance, rates, users });
     }, 700);
 
     return () => clearTimeout(timer);
-  }, [members, meetings, attendance, rates, autoSyncEnabled, sheetUrl, triggerGoogleSheetPush]);
+  }, [members, meetings, attendance, rates, users, autoSyncEnabled, sheetUrl, triggerGoogleSheetPush]);
+
+  // User Management Handlers
+  const handleAddUser = (newUser) => {
+    const updated = [...users, newUser];
+    setUsers(updated);
+    triggerGoogleSheetPush(sheetUrl, { members, meetings, attendance, rates, users: updated });
+  };
+
+  const handleUpdateUser = (updatedUser) => {
+    const updated = users.map(u => u.id === updatedUser.id ? updatedUser : u);
+    setUsers(updated);
+    if (currentUser && currentUser.id === updatedUser.id) {
+      setCurrentUser(updatedUser);
+    }
+    triggerGoogleSheetPush(sheetUrl, { members, meetings, attendance, rates, users: updated });
+  };
+
+  const handleDeleteUser = (userId) => {
+    const updated = users.filter(u => u.id !== userId);
+    setUsers(updated);
+    triggerGoogleSheetPush(sheetUrl, { members, meetings, attendance, rates, users: updated });
+  };
 
   // Attendance Handlers
   const handleToggleAttendance = (meetingId, memberId) => {
@@ -249,18 +327,15 @@ export default function App() {
   };
 
   const handleSaveMeeting = (meetingObj, attendanceMap) => {
-    // 1. If meeting date month is different from selectedMonth, switch view to that month so it never disappears
     if (meetingObj.monthYear && meetingObj.monthYear !== selectedMonth) {
       setSelectedMonth(meetingObj.monthYear);
     }
 
-    // 2. Update meetings list
     setMeetings(prev => {
       const exists = prev.some(m => m.id === meetingObj.id);
       return exists ? prev.map(m => m.id === meetingObj.id ? meetingObj : m) : [...prev, meetingObj];
     });
 
-    // 3. Update attendance
     if (attendanceMap) {
       setAttendance(prev => ({
         ...prev,
@@ -295,7 +370,7 @@ export default function App() {
       setMembers([]);
       setMeetings([]);
       setAttendance({});
-      triggerGoogleSheetPush(sheetUrl, { members: [], meetings: [], attendance: {}, rates });
+      triggerGoogleSheetPush(sheetUrl, { members: [], meetings: [], attendance: {}, rates, users });
     }
   };
 
@@ -310,6 +385,16 @@ export default function App() {
       return sum + stats.netPayable;
     }, 0);
   }, [members, monthMeetings, attendance, rates]);
+
+  // If not logged in, render the Login Screen
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        users={users}
+        onLogin={handleLogin}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-slate-100 text-slate-900 selection:bg-emerald-500 selection:text-white">
@@ -331,6 +416,9 @@ export default function App() {
         totalNetPayable={totalNetPayable}
         totalMeetingsCount={monthMeetings.length}
         onResetData={handleClearAllData}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        membersCount={members.length}
       />
 
       {/* Main Content Pane */}
@@ -358,6 +446,7 @@ export default function App() {
               onBulkSetAttendance={handleBulkSetAttendance}
               selectedMonth={selectedMonth}
               rates={rates}
+              currentUser={currentUser}
             />
           )}
 
@@ -394,13 +483,25 @@ export default function App() {
             />
           )}
 
-          {/* Tab 5: 24 Members */}
+          {/* Tab 5: Ward Members Directory */}
           {activeTab === 'members' && (
             <MemberManagement
               members={members}
               onAddMember={handleAddMember}
               onUpdateMember={handleUpdateMember}
               onDeleteMember={handleDeleteMember}
+              currentUser={currentUser}
+            />
+          )}
+
+          {/* Tab 6: User Management (Admin Only) */}
+          {activeTab === 'users' && (
+            <UserManagement
+              users={users}
+              currentUser={currentUser}
+              onAddUser={handleAddUser}
+              onUpdateUser={handleUpdateUser}
+              onDeleteUser={handleDeleteUser}
             />
           )}
 

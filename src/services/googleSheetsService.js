@@ -60,12 +60,14 @@ function doGet(e) {
   var meetingsSheet = ss.getSheetByName('Meetings');
   var attendanceSheet = ss.getSheetByName('Attendance');
   var ratesSheet = ss.getSheetByName('Rates');
+  var usersSheet = ss.getSheetByName('Users');
   
   var data = {
     members: membersSheet ? getSheetData(membersSheet) : [],
     meetings: meetingsSheet ? getMeetingsData(meetingsSheet) : [],
     attendance: attendanceSheet ? getAttendanceMap(attendanceSheet) : {},
-    rates: ratesSheet ? getRatesData(ratesSheet) : null
+    rates: ratesSheet ? getRatesData(ratesSheet) : null,
+    users: usersSheet ? getSheetData(usersSheet) : []
   };
   
   return ContentService.createTextOutput(JSON.stringify({ status: 'success', data: data }))
@@ -81,11 +83,12 @@ function doPost(e) {
     var payload = JSON.parse(e.postData.contents);
     var action = payload.action;
     
-    if (action === 'SYNC_ALL' || action === 'SAVE_ATTENDANCE') {
+    if (action === 'SYNC_ALL' || action === 'SAVE_ATTENDANCE' || action === 'SAVE_USERS') {
       if (payload.members) saveMembersSheet(ss, payload.members);
       if (payload.meetings) saveMeetingsSheet(ss, payload.meetings);
       if (payload.attendance) saveAttendanceSheet(ss, payload.attendance);
       if (payload.rates) saveRatesSheet(ss, payload.rates);
+      if (payload.users) saveUsersSheet(ss, payload.users);
     }
     
     return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Data saved to Google Sheet' }))
@@ -238,6 +241,23 @@ function getRatesData(sheet) {
   }
   return rates;
 }
+
+function saveUsersSheet(ss, users) {
+  var sheet = ss.getSheetByName('Users') || ss.insertSheet('Users');
+  sheet.clear();
+  sheet.appendRow(['id', 'username', 'password', 'name', 'role', 'status', 'createdAt']);
+  users.forEach(function(u) {
+    sheet.appendRow([
+      "'" + (u.id || ''),
+      "'" + (u.username || ''),
+      "'" + (u.password || ''),
+      u.name || '',
+      u.role || 'viewer',
+      u.status || 'active',
+      "'" + (u.createdAt || '')
+    ]);
+  });
+}
 `;
 
 /**
@@ -309,11 +329,23 @@ export async function fetchGoogleSheetData(webAppUrl = DEFAULT_GOOGLE_SHEET_URL)
     }
   } : null;
 
+  // Normalize users from sheet
+  const normalizedUsers = (raw.users || []).map(u => ({
+    id: String(u.id || `USR_${Date.now()}`),
+    username: String(u.username || '').trim().toLowerCase(),
+    password: String(u.password || '').trim(),
+    name: String(u.name || u.username || '').trim(),
+    role: ['admin', 'clerk', 'viewer'].includes(String(u.role || '').toLowerCase()) ? String(u.role).toLowerCase() : 'viewer',
+    status: String(u.status || 'active').toLowerCase() === 'inactive' ? 'inactive' : 'active',
+    createdAt: String(u.createdAt || new Date().toISOString().split('T')[0])
+  })).filter(u => u.username && u.password);
+
   return {
     members: normalizedMembers,
     meetings: normalizedMeetings,
     attendance: raw.attendance || {},
-    rates: normalizedRates
+    rates: normalizedRates,
+    users: normalizedUsers
   };
 }
 

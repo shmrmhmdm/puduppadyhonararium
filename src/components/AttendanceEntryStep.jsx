@@ -26,8 +26,10 @@ export default function AttendanceEntryStep({
   onToggleAttendance,
   onBulkSetAttendance,
   selectedMonth,
-  rates = STATUTORY_RATES
+  rates = STATUTORY_RATES,
+  currentUser
 }) {
+  const isReadOnly = currentUser?.role === 'viewer';
   // Active meeting type tab: 'BOARD' or 'SC'
   const [activeCategory, setActiveCategory] = useState('BOARD'); // 'BOARD' or 'SC'
   const [selectedCommittee, setSelectedCommittee] = useState('development');
@@ -217,13 +219,15 @@ export default function AttendanceEntryStep({
             </span>
           </div>
 
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ പുതിയ യോഗ തീയതി ചേർക്കുക</span>
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ പുതിയ യോഗ തീയതി ചേർക്കുക</span>
+            </button>
+          )}
         </div>
 
         {/* Inline Add Meeting Form - Only Date Required */}
@@ -294,19 +298,21 @@ export default function AttendanceEntryStep({
                     </div>
                   </div>
 
-                  {/* Delete meeting button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`ഈ യോഗം (${m.formattedDate}) ഡിലീറ്റ് ചെയ്യണോ?`)) {
-                        onDeleteMeeting(m.id);
-                      }
-                    }}
-                    className="text-slate-400 hover:text-rose-500 p-1 rounded transition ml-1"
-                    title="Delete meeting"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {/* Delete meeting button (Disabled for Viewer) */}
+                  {!isReadOnly && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`ഈ യോഗം (${m.formattedDate}) ഡിലീറ്റ് ചെയ്യണോ?`)) {
+                          onDeleteMeeting(m.id);
+                        }
+                      }}
+                      className="text-slate-400 hover:text-rose-500 p-1 rounded transition ml-1"
+                      title="Delete meeting"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -316,12 +322,14 @@ export default function AttendanceEntryStep({
             <p className="text-xs text-slate-600 font-medium">
               ഈ വിഭാഗത്തിൽ {formatMonthYearMalayalam(selectedMonth)} മാസത്തിൽ യോഗങ്ങളൊന്നും ചേർത്തിട്ടില്ല.
             </p>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs"
-            >
-              + ആദ്യ യോഗ തീയതി ചേർക്കുക
-            </button>
+            {!isReadOnly && (
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs"
+              >
+                + ആദ്യ യോഗ തീയതി ചേർക്കുക
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -342,30 +350,34 @@ export default function AttendanceEntryStep({
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                ഹാജരായവരെ മാത്രം ടിക്ക് ചെയ്യുക. അവധിയുള്ളവരെ അൺചെക്ക് ചെയ്യുക.
+                {isReadOnly 
+                  ? 'വ്യൂവർ മോഡ് (Read Only): ഹാജർ വിവരങ്ങൾ കാണാൻ മാത്രമേ സാധിക്കൂ.'
+                  : 'ഹാജരായവരെ മാത്രം ടിക്ക് ചെയ്യുക. അവധിയുള്ളവരെ അൺചെക്ക് ചെയ്യുക.'}
               </p>
             </div>
 
             {/* 1-Click Select All and Clear Buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-sm transition active:scale-95"
-              >
-                <CheckSquare className="w-4 h-4" />
-                <span>എല്ലാവരേയും തിരഞ്ഞെടുക്കുക (Select All)</span>
-              </button>
+            {!isReadOnly && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-sm transition active:scale-95"
+                >
+                  <CheckSquare className="w-4 h-4" />
+                  <span>എല്ലാവരേയും തിരഞ്ഞെടുക്കുക (Select All)</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={handleDeselectAll}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 transition"
-              >
-                <Square className="w-4 h-4" />
-                <span>എല്ലാം ഒഴിവാക്കുക</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handleDeselectAll}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl border border-slate-700 transition"
+                >
+                  <Square className="w-4 h-4" />
+                  <span>എല്ലാം ഒഴിവാക്കുക</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Live Attendance Tally Bar */}
@@ -393,8 +405,8 @@ export default function AttendanceEntryStep({
                 return (
                   <div
                     key={member.id}
-                    onClick={() => onToggleAttendance(currentMeeting.id, member.id)}
-                    className={`p-3.5 rounded-2xl border-2 transition cursor-pointer select-none flex items-center justify-between gap-3 ${
+                    onClick={() => !isReadOnly && onToggleAttendance(currentMeeting.id, member.id)}
+                    className={`p-3.5 rounded-2xl border-2 transition ${isReadOnly ? 'cursor-default' : 'cursor-pointer'} select-none flex items-center justify-between gap-3 ${
                       isChecked
                         ? 'bg-emerald-50/90 border-emerald-500 shadow-xs ring-1 ring-emerald-500/20'
                         : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'

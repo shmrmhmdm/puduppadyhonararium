@@ -35,7 +35,10 @@ export default function Sidebar({
   onToggleAutoSync,
   totalNetPayable,
   totalMeetingsCount,
-  onResetData
+  onResetData,
+  currentUser,
+  onLogout,
+  membersCount = 24
 }) {
   const handlePrevMonth = () => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -53,11 +56,15 @@ export default function Sidebar({
     setSelectedMonth(`${y}-${m}`);
   };
 
+  const isAdmin = currentUser?.role === 'admin';
+  const isClerk = currentUser?.role === 'clerk';
+  const isViewer = currentUser?.role === 'viewer';
+
   const menuItems = [
     {
       id: 'entry',
       title: '1. ഹാജർ രേഖപ്പെടുത്തുക',
-      subtitle: 'Attendance Entry',
+      subtitle: isViewer ? 'Attendance (View Only)' : 'Attendance Entry',
       icon: CheckSquare,
       badge: `${totalMeetingsCount} യോഗം`
     },
@@ -81,11 +88,31 @@ export default function Sidebar({
     },
     {
       id: 'members',
-      title: '5. മെമ്പർമാർ (24 വാർഡുകൾ)',
+      title: `5. മെമ്പർമാർ (${membersCount} വാർഡുകൾ)`,
       subtitle: 'Council Directory',
       icon: Users
     }
   ];
+
+  // If Admin, add User Management tab
+  if (isAdmin) {
+    menuItems.push({
+      id: 'users',
+      title: '6. ഉപയോക്താക്കൾ (Users)',
+      subtitle: 'User Management & Roles',
+      icon: ShieldCheck,
+      badge: 'Admin'
+    });
+  }
+
+  const getRoleMalayalam = (role) => {
+    switch (role) {
+      case 'admin': return 'അഡ്മിൻ (Admin)';
+      case 'clerk': return 'ക്ലർക്ക് (Clerk)';
+      case 'viewer': return 'വ്യൂവർ (Viewer)';
+      default: return role || 'User';
+    }
+  };
 
   return (
     <aside className="w-80 min-w-[280px] bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800 h-screen sticky top-0 no-print">
@@ -110,8 +137,33 @@ export default function Sidebar({
           </div>
         </div>
 
+        {/* Current User Pill */}
+        {currentUser && (
+          <div className="mt-3 bg-slate-800/80 border border-slate-700/70 rounded-2xl p-2.5 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shrink-0 uppercase">
+                {currentUser.name.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-200 truncate">{currentUser.name}</div>
+                <div className="text-[10px] text-emerald-400 font-medium truncate">
+                  {getRoleMalayalam(currentUser.role)}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onLogout}
+              className="p-1.5 rounded-lg bg-slate-700/80 hover:bg-rose-900/60 hover:text-rose-200 text-slate-300 text-[10px] font-bold transition flex items-center gap-1 shrink-0 cursor-pointer"
+              title="Logout"
+            >
+              <span>ലോഗൗട്ട്</span>
+            </button>
+          </div>
+        )}
+
         {/* Month Switcher inside Sidebar */}
-        <div className="mt-4 bg-slate-800/90 rounded-2xl p-2 border border-slate-700/80">
+        <div className="mt-3 bg-slate-800/90 rounded-2xl p-2 border border-slate-700/80">
           <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold px-1 mb-1">
             മാസം തിരഞ്ഞെടുക്കുക (Month):
           </div>
@@ -119,7 +171,7 @@ export default function Sidebar({
             <button
               onClick={handlePrevMonth}
               title="മുമ്പത്തെ മാസം"
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -139,7 +191,7 @@ export default function Sidebar({
             <button
               onClick={handleNextMonth}
               title="അടുത്ത മാസം"
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition"
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -161,7 +213,7 @@ export default function Sidebar({
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full text-left p-3 rounded-2xl transition flex items-center justify-between gap-3 ${
+              className={`w-full text-left p-3 rounded-2xl transition flex items-center justify-between gap-3 cursor-pointer ${
                 isActive
                   ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-950/40'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
@@ -227,7 +279,7 @@ export default function Sidebar({
 
         <button
           onClick={onOpenSheetSync}
-          className="mt-2 w-full py-1.5 px-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5"
+          className="mt-2 w-full py-1.5 px-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
           <span>{isSyncing ? 'സിങ്ക് ചെയ്യുന്നു...' : 'സിങ്ക് ക്രമീകരണങ്ങൾ'}</span>
@@ -247,7 +299,7 @@ export default function Sidebar({
             {formatINR(totalNetPayable)}
           </div>
           <div className="text-[10px] text-slate-400">
-            24 വാർഡ് അംഗങ്ങൾ
+            {membersCount} വാർഡ് അംഗങ്ങൾ
           </div>
         </div>
 
@@ -258,30 +310,38 @@ export default function Sidebar({
               setActiveTab('acquittance');
               setTimeout(() => window.print(), 200);
             }}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5"
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
             title="Print Acquittance Roll"
           >
             <Printer className="w-3.5 h-3.5 text-emerald-400" />
             <span>പ്രിന്റ്</span>
           </button>
 
-          <button
-            onClick={onOpenSettings}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5"
-            title="Statutory Settings"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
-            <span>നിരക്കുകൾ</span>
-          </button>
+          {isAdmin ? (
+            <button
+              onClick={onOpenSettings}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+              title="Statutory Settings"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
+              <span>നിരക്കുകൾ</span>
+            </button>
+          ) : (
+            <div className="p-2 rounded-xl bg-slate-800/40 text-slate-500 text-xs font-medium flex items-center justify-center gap-1 text-center text-[10px]">
+              <span>റീഡ് ഒൺലി</span>
+            </div>
+          )}
         </div>
 
-        <button
-          onClick={onResetData}
-          className="w-full text-center text-[10px] text-slate-400 hover:text-emerald-400 py-1 flex items-center justify-center gap-1 transition"
-        >
-          <RotateCcw className="w-3 h-3" />
-          <span>ഡെമോ ഡാറ്റ റീസെറ്റ് ചെയ്യുക</span>
-        </button>
+        {isAdmin && (
+          <button
+            onClick={onResetData}
+            className="w-full text-center text-[10px] text-slate-400 hover:text-emerald-400 py-1 flex items-center justify-center gap-1 transition cursor-pointer"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>ഡാറ്റ റീസെറ്റ് ചെയ്യുക</span>
+          </button>
+        )}
 
       </div>
 

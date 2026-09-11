@@ -26,6 +26,10 @@ export default function TopHeader({ activeTab, selectedMonth, onPrint }) {
     members: {
       title: '5. ഭരണസമിതി അംഗങ്ങളുടെ ഡയറക്ടറി (24 Members)',
       desc: 'പുതുപ്പാടി പഞ്ചായത്തിലെ 24 വാർഡ് മെമ്പർമാരുടെ വിവരങ്ങൾ'
+    },
+    users: {
+      title: '6. ഉപയോക്താക്കൾ & അനുമതികൾ (User Management & Roles)',
+      desc: 'പുതിയ ഉപയോക്താക്കളെ ചേർക്കാനും അഡ്മിൻ, ക്ലർക്ക്, വ്യൂവർ റോളുകൾ നിയന്ത്രിക്കാനും'
     }
   };
 
