@@ -53,29 +53,48 @@ export default function SettingsModal({ isOpen, onClose, rates, onSaveRates }) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                  ഒരു യോഗത്തിനുള്ള നിരക്ക് (₹/Mtg)
+                  വാർഡ് മെമ്പർമാർക്ക് (₹/Mtg)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  value={formData.sittingFeePerMeeting}
-                  onChange={(e) => setFormData({ ...formData, sittingFeePerMeeting: Number(e.target.value) })}
+                  value={formData.sittingFee?.member ?? 200}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    sittingFee: { ...(formData.sittingFee || {}), member: Number(e.target.value) },
+                    sittingFeePerMeeting: Number(e.target.value)
+                  })}
                   className="w-full text-xs p-2 rounded-lg border border-slate-300 font-mono focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                  പ്രതിമാസ പരമാവധി പരിധി (₹ Ceiling)
+                  പ്രസിഡന്റ് / വൈസ് പ്രസിഡന്റ് / SC (₹/Mtg)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  value={formData.monthlySittingFeeCeiling}
-                  onChange={(e) => setFormData({ ...formData, monthlySittingFeeCeiling: Number(e.target.value) })}
+                  value={formData.sittingFee?.president ?? 250}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFormData({ 
+                      ...formData, 
+                      sittingFee: { 
+                        ...(formData.sittingFee || {}), 
+                        president: val,
+                        vice_president: val,
+                        sc_chairperson: val
+                      }
+                    });
+                  }}
                   className="w-full text-xs p-2 rounded-lg border border-slate-300 font-mono focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
+            </div>
+
+            <div className="text-[10px] text-slate-500 pt-1 border-t border-emerald-200/60 flex items-center justify-between">
+              <span>പരമാവധി പ്രതിമാസ പരിധി: മെമ്പർമാർക്ക് <strong>₹1,000</strong> (5 യോഗം), മറ്റുള്ളവർക്ക് <strong>₹1,250</strong> (5 യോഗം)</span>
             </div>
           </div>
 

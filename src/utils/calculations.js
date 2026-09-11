@@ -25,6 +25,39 @@ export function isMemberEligibleForMeeting(member, meeting) {
 }
 
 /**
+ * Returns sitting fee rate per meeting for a specific member based on designation
+ * Members: ₹200, SC Chairperson / VP / President: ₹250
+ */
+export function getMemberSittingFeeRate(member, rates = STATUTORY_RATES) {
+  if (!member) return 200;
+  const desig = member.designation || 'member';
+  if (rates?.sittingFee && typeof rates.sittingFee === 'object' && rates.sittingFee[desig] !== undefined) {
+    return Number(rates.sittingFee[desig]);
+  }
+  if (desig === 'president' || desig === 'vice_president' || desig === 'sc_chairperson') {
+    return 250;
+  }
+  return Number(rates?.sittingFeePerMeeting) || 200;
+}
+
+/**
+ * Returns monthly sitting fee ceiling for a specific member based on designation
+ * Members: ₹1000 (5 × ₹200), SC Chairperson / VP / President: ₹1250 (5 × ₹250)
+ */
+export function getMemberSittingFeeCeiling(member, rates = STATUTORY_RATES) {
+  if (!member) return 1000;
+  const desig = member.designation || 'member';
+  const rate = getMemberSittingFeeRate(member, rates);
+  if (rates?.monthlySittingFeeCeiling && typeof rates.monthlySittingFeeCeiling === 'object' && rates.monthlySittingFeeCeiling[desig] !== undefined) {
+    return Number(rates.monthlySittingFeeCeiling[desig]);
+  }
+  if (typeof rates?.monthlySittingFeeCeiling === 'number' && rates.monthlySittingFeeCeiling > 0) {
+    return Number(rates.monthlySittingFeeCeiling);
+  }
+  return rate * 5;
+}
+
+/**
  * Calculate attendance counts and fee breakdown for a member in a specific month
  */
 export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attendanceMap = {}, rates = STATUTORY_RATES) {
@@ -33,6 +66,9 @@ export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attend
   let totalBoardEligible = 0;
   let totalScEligible = 0;
 
+  const sittingFeePerMeeting = getMemberSittingFeeRate(member, rates);
+  const monthlyCeiling = getMemberSittingFeeCeiling(member, rates);
+
   if (!member) {
     return {
       boardAttended: 0,
@@ -40,9 +76,9 @@ export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attend
       totalAttended: 0,
       totalBoardEligible: 0,
       totalScEligible: 0,
-      sittingFeePerMeeting: 250,
+      sittingFeePerMeeting,
       earnedSittingFee: 0,
-      monthlyCeiling: 1250,
+      monthlyCeiling,
       admissibleSittingFee: 0,
       excessCapped: 0,
       fixedHonorarium: 8200,
@@ -68,9 +104,7 @@ export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attend
   });
 
   const totalAttended = boardAttended + scAttended;
-  const sittingFeePerMeeting = Number(rates?.sittingFeePerMeeting) || 250;
   const earnedSittingFee = totalAttended * sittingFeePerMeeting;
-  const monthlyCeiling = Number(rates?.monthlySittingFeeCeiling) || 1250;
   const admissibleSittingFee = Math.min(earnedSittingFee, monthlyCeiling);
   const excessCapped = Math.max(0, earnedSittingFee - monthlyCeiling);
 

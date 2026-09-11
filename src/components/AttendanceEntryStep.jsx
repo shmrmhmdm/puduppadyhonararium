@@ -15,7 +15,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { STANDING_COMMITTEES, STATUTORY_RATES } from '../data/initialData';
-import { isMemberEligibleForMeeting, formatMonthYearMalayalam, formatINR } from '../utils/calculations';
+import { isMemberEligibleForMeeting, formatMonthYearMalayalam, formatINR, getMemberSittingFeeRate } from '../utils/calculations';
 
 export default function AttendanceEntryStep({
   members,
@@ -142,6 +142,18 @@ export default function AttendanceEntryStep({
     if (!currentMeeting) return 0;
     return eligibleMembers.filter(m => Boolean(attendance[currentMeeting.id]?.[m.id])).length;
   }, [eligibleMembers, attendance, currentMeeting]);
+
+  // Total sitting fee calculated for current meeting
+  const meetingTotalSittingFee = useMemo(() => {
+    if (!currentMeeting) return 0;
+    return eligibleMembers.reduce((sum, mem) => {
+      const isPresent = Boolean(attendance[currentMeeting.id]?.[mem.id]);
+      if (isPresent) {
+        return sum + getMemberSittingFeeRate(mem, rates);
+      }
+      return sum;
+    }, 0);
+  }, [eligibleMembers, attendance, currentMeeting, rates]);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -392,7 +404,7 @@ export default function AttendanceEntryStep({
             </div>
 
             <div className="text-[11px] text-emerald-800 font-medium">
-              സിറ്റിംഗ് ഫീസ് നിരക്ക്: <strong>₹{rates.sittingFeePerMeeting}</strong> / മീറ്റിംഗ്
+              സിറ്റിംഗ് ഫീസ്: <strong>മെമ്പർമാർക്ക് ₹{rates?.sittingFee?.member ?? 200}</strong>, <strong>മറ്റുള്ളവർക്ക് ₹{rates?.sittingFee?.president ?? 250}</strong> / യോഗം
             </div>
           </div>
 
@@ -465,7 +477,7 @@ export default function AttendanceEntryStep({
             </div>
 
             <div className="font-mono text-xs font-bold text-emerald-800">
-              ഈ യോഗത്തിലെ ആകെ സിറ്റിംഗ് ഫീസ് തുക: {formatINR(currentPresentCount * rates.sittingFeePerMeeting)}
+              ഈ യോഗത്തിലെ ആകെ സിറ്റിംഗ് ഫീസ് തുക: {formatINR(meetingTotalSittingFee)}
             </div>
           </div>
 

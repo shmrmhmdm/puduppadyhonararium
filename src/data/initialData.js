@@ -9,8 +9,19 @@ export const STANDING_COMMITTEES = [
 ];
 
 export const STATUTORY_RATES = {
-  sittingFeePerMeeting: 250,
-  monthlySittingFeeCeiling: 1250, // max 5 meetings fee per month
+  sittingFee: {
+    president: 250,
+    vice_president: 250,
+    sc_chairperson: 250,
+    member: 200,
+  },
+  monthlySittingFeeCeiling: {
+    president: 1250,
+    vice_president: 1250,
+    sc_chairperson: 1250,
+    member: 1000, // 5 meetings × 200
+  },
+  sittingFeePerMeeting: 200,
   honorarium: {
     president: 13200,
     vice_president: 10600,

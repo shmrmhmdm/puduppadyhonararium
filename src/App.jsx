@@ -115,6 +115,14 @@ export default function App() {
         return {
           ...STATUTORY_RATES,
           ...parsed,
+          sittingFee: {
+            ...STATUTORY_RATES.sittingFee,
+            ...(parsed.sittingFee || {})
+          },
+          monthlySittingFeeCeiling: {
+            ...STATUTORY_RATES.monthlySittingFeeCeiling,
+            ...(typeof parsed.monthlySittingFeeCeiling === 'object' ? parsed.monthlySittingFeeCeiling : {})
+          },
           honorarium: {
             ...STATUTORY_RATES.honorarium,
             ...(parsed.honorarium || {})

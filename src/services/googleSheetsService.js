@@ -229,15 +229,50 @@ function saveRatesSheet(ss, rates) {
   var sheet = ss.getSheetByName('Rates') || ss.insertSheet('Rates');
   sheet.clear();
   sheet.appendRow(['Key', 'Value']);
-  sheet.appendRow(['sittingFeePerMeeting', rates.sittingFeePerMeeting]);
-  sheet.appendRow(['monthlySittingFeeCeiling', rates.monthlySittingFeeCeiling]);
+  var sMember = (rates.sittingFee && rates.sittingFee.member) ? rates.sittingFee.member : 200;
+  var sPresident = (rates.sittingFee && rates.sittingFee.president) ? rates.sittingFee.president : 250;
+  var sVP = (rates.sittingFee && rates.sittingFee.vice_president) ? rates.sittingFee.vice_president : 250;
+  var sSC = (rates.sittingFee && rates.sittingFee.sc_chairperson) ? rates.sittingFee.sc_chairperson : 250;
+  
+  sheet.appendRow(['sittingFee_member', sMember]);
+  sheet.appendRow(['sittingFee_president', sPresident]);
+  sheet.appendRow(['sittingFee_vice_president', sVP]);
+  sheet.appendRow(['sittingFee_sc_chairperson', sSC]);
+  sheet.appendRow(['sittingFeePerMeeting', rates.sittingFeePerMeeting || 200]);
+  sheet.appendRow(['monthlySittingFeeCeiling', rates.monthlySittingFeeCeiling || 1250]);
 }
 
 function getRatesData(sheet) {
   var rows = sheet.getDataRange().getValues();
-  var rates = {};
+  var rates = {
+    sittingFee: {
+      president: 250,
+      vice_president: 250,
+      sc_chairperson: 250,
+      member: 200
+    },
+    monthlySittingFeeCeiling: {
+      president: 1250,
+      vice_president: 1250,
+      sc_chairperson: 1250,
+      member: 1000
+    },
+    sittingFeePerMeeting: 200,
+    honorarium: {
+      president: 13200,
+      vice_president: 10600,
+      sc_chairperson: 9400,
+      member: 8200
+    }
+  };
   for (var i = 1; i < rows.length; i++) {
-    rates[rows[i][0]] = Number(rows[i][1]);
+    var k = String(rows[i][0]);
+    var v = Number(rows[i][1]);
+    if (k === 'sittingFee_member') rates.sittingFee.member = v;
+    else if (k === 'sittingFee_president') rates.sittingFee.president = v;
+    else if (k === 'sittingFee_vice_president') rates.sittingFee.vice_president = v;
+    else if (k === 'sittingFee_sc_chairperson') rates.sittingFee.sc_chairperson = v;
+    else rates[k] = v;
   }
   return rates;
 }
@@ -318,8 +353,20 @@ export async function fetchGoogleSheetData(webAppUrl = DEFAULT_GOOGLE_SHEET_URL)
 
   // Normalize rates
   const normalizedRates = raw.rates ? {
-    sittingFeePerMeeting: Number(raw.rates.sittingFeePerMeeting) || 250,
-    monthlySittingFeeCeiling: Number(raw.rates.monthlySittingFeeCeiling) || 1250,
+    sittingFee: {
+      president: raw.rates.sittingFee?.president || raw.rates.sittingFee_president || 250,
+      vice_president: raw.rates.sittingFee?.vice_president || raw.rates.sittingFee_vice_president || 250,
+      sc_chairperson: raw.rates.sittingFee?.sc_chairperson || raw.rates.sittingFee_sc_chairperson || 250,
+      member: raw.rates.sittingFee?.member || raw.rates.sittingFee_member || 200
+    },
+    monthlySittingFeeCeiling: {
+      president: 1250,
+      vice_president: 1250,
+      sc_chairperson: 1250,
+      member: 1000,
+      ...(raw.rates.monthlySittingFeeCeiling && typeof raw.rates.monthlySittingFeeCeiling === 'object' ? raw.rates.monthlySittingFeeCeiling : {})
+    },
+    sittingFeePerMeeting: Number(raw.rates.sittingFeePerMeeting) || 200,
     honorarium: {
       president: 13200,
       vice_president: 10600,
