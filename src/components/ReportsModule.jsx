@@ -422,6 +422,9 @@ export default function ReportsModule({
               <h1 className="text-xl font-black text-slate-950 mt-1">
                 പുതുപ്പാടി ഗ്രാമപഞ്ചായത്ത് കാര്യാലയം
               </h1>
+              <p className="text-xs text-slate-700 font-medium mt-0.5">
+                പുതുപ്പാടി പി.ഒ., കോഴിക്കോട് - 673586
+              </p>
               <div className="mt-2 inline-block px-4 py-1 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold text-slate-900">
                 ഭരണസമിതി അംഗങ്ങളുടെ തീയതി തിരിച്ചുള്ള ഹാജർ ഓഡിറ്റ് റിപ്പോർട്ട് - {formatMonthYearMalayalam(selectedMonth)}
               </div>
@@ -511,6 +514,9 @@ export default function ReportsModule({
               <h1 className="text-xl font-black text-slate-950 mt-1">
                 പുതുപ്പാടി ഗ്രാമപഞ്ചായത്ത് കാര്യാലയം
               </h1>
+              <p className="text-xs text-slate-700 font-medium mt-0.5">
+                പുതുപ്പാടി പി.ഒ., കോഴിക്കോട് - 673586
+              </p>
               <div className="mt-2 inline-block px-4 py-1 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold text-slate-900">
                 ഡയറക്ട് ബാങ്ക് ട്രാൻസ്ഫർ / DBT പേയ്മെന്റ് ഷെഡ്യൂൾ - {formatMonthYearMalayalam(selectedMonth)}
               </div>

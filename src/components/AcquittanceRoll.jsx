@@ -150,7 +150,7 @@ export default function AcquittanceRoll({
               പുതുപ്പാടി ഗ്രാമപഞ്ചായത്ത് കാര്യാലയം (PUDUPPADY GRAMA PANCHAYAT)
             </h1>
             <p className="text-xs text-slate-700 font-medium">
-              ഈങ്ങാപ്പുഴ പി.ഒ., കോഴിക്കോട് ജില്ല, കേരളം - 673586
+              പുതുപ്പാടി പി.ഒ., കോഴിക്കോട് - 673586
             </p>
             <div className="mt-2 inline-block px-4 py-1 rounded-md bg-slate-100 border border-slate-300 text-xs font-bold text-slate-900">
               ഭരണസമിതി അംഗങ്ങളുടെ പ്രതിമാസ ഓണറേറിയം & സിറ്റിംഗ് ഫീസ് അക്വിറ്റൻസ് റോൾ
