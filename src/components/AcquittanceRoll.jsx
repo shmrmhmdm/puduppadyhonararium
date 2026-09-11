@@ -163,22 +163,18 @@ export default function AcquittanceRoll({
           <div className="w-16 shrink-0 hidden sm:block"></div>
         </div>
 
-        {/* Head of Account & Voucher Meta */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 mb-4 print:bg-transparent print:border-slate-400">
+        {/* Meta summary row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 mb-4 print:bg-transparent print:border-slate-400">
           <div>
-            <span className="text-slate-500 font-semibold block">ഹെഡ് ഓഫ് അക്കൗണ്ട്:</span>
-            <span className="font-mono font-bold text-slate-800">2515-00-198-99</span>
+            <span className="text-slate-500 font-semibold block">ആകെ വാർഡുകൾ / മെമ്പർമാർ:</span>
+            <span className="font-bold text-slate-800">{members.length} വാർഡുകൾ ({members.length} Members)</span>
           </div>
           <div>
-            <span className="text-slate-500 font-semibold block">ആകെ വാർഡുകൾ:</span>
-            <span className="font-bold text-slate-800">24 വാർഡുകൾ (24 Members)</span>
-          </div>
-          <div>
-            <span className="text-slate-500 font-semibold block">നടന്ന യോഗങ്ങൾ:</span>
+            <span className="text-slate-500 font-semibold block">നടന്ന യോഗങ്ങൾ (Meetings):</span>
             <span className="font-bold text-slate-800">{monthMeetings.length} യോഗങ്ങൾ</span>
           </div>
           <div>
-            <span className="text-slate-500 font-semibold block">ആകെ അനുവദിച്ച തുക:</span>
+            <span className="text-slate-500 font-semibold block">ആകെ അനുവദിച്ച തുക (Total Outlay):</span>
             <span className="font-bold text-emerald-800 font-mono text-xs">{formatINR(grandTotalNet)}</span>
           </div>
         </div>
