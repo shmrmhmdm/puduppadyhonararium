@@ -27,24 +27,78 @@ export default function App() {
   const LS_LAST_SYNC_KEY = 'puduppady_last_sync_time_v4';
 
   // State
+  // State with safe normalization
   const [members, setMembers] = useState(() => {
-    const saved = localStorage.getItem(LS_MEMBERS_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_MEMBERS;
+    try {
+      const saved = localStorage.getItem(LS_MEMBERS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map(m => ({
+            id: String(m.id || `M${String(m.wardNo || 1).padStart(2, '0')}`),
+            wardNo: Number(m.wardNo) || 1,
+            wardName: String(m.wardName || `വാർഡ് ${m.wardNo || 1}`),
+            name: String(m.name || ''),
+            englishName: String(m.englishName || m.name || ''),
+            designation: String(m.designation || 'member'),
+            designationLabel: String(m.designationLabel || 'മെമ്പർ (Ward Member)'),
+            standingCommittee: m.standingCommittee || null,
+            phone: String(m.phone || '9447000000'),
+            bankDetails: {
+              accountNo: String(m.bankDetails?.accountNo || m.accountNo || ''),
+              ifsc: String(m.bankDetails?.ifsc || m.ifsc || 'SBIN0070554'),
+              bankName: String(m.bankDetails?.bankName || m.bankName || 'State Bank of India'),
+              branch: String(m.bankDetails?.branch || m.branch || 'Puduppady')
+            }
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading saved members:', e);
+    }
+    return INITIAL_MEMBERS;
   });
 
   const [meetings, setMeetings] = useState(() => {
-    const saved = localStorage.getItem(LS_MEETINGS_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_MEETINGS;
+    try {
+      const saved = localStorage.getItem(LS_MEETINGS_KEY);
+      return saved ? JSON.parse(saved) : INITIAL_MEETINGS;
+    } catch (e) {
+      return INITIAL_MEETINGS;
+    }
   });
 
   const [attendance, setAttendance] = useState(() => {
-    const saved = localStorage.getItem(LS_ATTENDANCE_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_ATTENDANCE;
+    try {
+      const saved = localStorage.getItem(LS_ATTENDANCE_KEY);
+      return saved ? JSON.parse(saved) : INITIAL_ATTENDANCE;
+    } catch (e) {
+      return INITIAL_ATTENDANCE;
+    }
   });
 
   const [rates, setRates] = useState(() => {
-    const saved = localStorage.getItem(LS_RATES_KEY);
-    return saved ? JSON.parse(saved) : STATUTORY_RATES;
+    try {
+      const saved = localStorage.getItem(LS_RATES_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...STATUTORY_RATES,
+          ...parsed,
+          honorarium: {
+            ...STATUTORY_RATES.honorarium,
+            ...(parsed.honorarium || {})
+          },
+          phoneAllowance: {
+            ...STATUTORY_RATES.phoneAllowance,
+            ...(parsed.phoneAllowance || {})
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('Error reading saved rates:', e);
+    }
+    return STATUTORY_RATES;
   });
 
   const [sheetUrl, setSheetUrl] = useState(() => {

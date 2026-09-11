@@ -26,9 +26,14 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
 
+  // Calculate next ward number helper
+  const nextWardNo = (members && members.length > 0)
+    ? Math.max(...members.map(m => Number(m.wardNo) || 0)) + 1
+    : 1;
+
   // Form state for adding new member
   const [newMemberForm, setNewMemberForm] = useState({
-    wardNo: members.length + 1,
+    wardNo: nextWardNo,
     wardName: '',
     name: '',
     englishName: '',
@@ -44,10 +49,19 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
     }
   });
 
-  // Designation change helper for Add
+  // Keep newMemberForm.wardNo in sync if opened and empty
+  const handleOpenAddModal = () => {
+    setNewMemberForm(prev => ({
+      ...prev,
+      wardNo: (members && members.length > 0) ? Math.max(...members.map(m => Number(m.wardNo) || 0)) + 1 : 1
+    }));
+    setIsAddModalOpen(true);
+  };
+
+  // Designation change helper for Add/Edit
   const handleDesignationChange = (desig, formState, setFormState) => {
     let label = 'മെമ്പർ (Ward Member)';
-    let comm = formState.standingCommittee;
+    let comm = formState.standingCommittee || 'development';
 
     if (desig === 'president') {
       label = 'പ്രസിഡന്റ് (President)';
@@ -70,33 +84,35 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
   // Submit Add
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    if (!newMemberForm.name.trim()) return;
+    if (!newMemberForm.name || !newMemberForm.name.trim()) return;
 
-    const newId = `M${String(newMemberForm.wardNo).padStart(2, '0')}_${Date.now().toString().slice(-4)}`;
+    const assignedWardNo = Number(newMemberForm.wardNo) || nextWardNo;
+    const newId = `M${String(assignedWardNo).padStart(2, '0')}_${Date.now().toString().slice(-4)}`;
     
     const memberToAdd = {
       id: newId,
-      wardNo: Number(newMemberForm.wardNo),
-      wardName: newMemberForm.wardName.trim() || `വാർഡ് ${newMemberForm.wardNo}`,
+      wardNo: assignedWardNo,
+      wardName: (newMemberForm.wardName || '').trim() || `വാർഡ് ${assignedWardNo}`,
       name: newMemberForm.name.trim(),
-      englishName: newMemberForm.englishName.trim() || newMemberForm.name.trim(),
-      designation: newMemberForm.designation,
-      designationLabel: newMemberForm.designationLabel,
-      standingCommittee: newMemberForm.standingCommittee,
-      phone: newMemberForm.phone.trim() || '9447000000',
+      englishName: (newMemberForm.englishName || '').trim() || newMemberForm.name.trim(),
+      designation: newMemberForm.designation || 'member',
+      designationLabel: newMemberForm.designationLabel || 'മെമ്പർ (Ward Member)',
+      standingCommittee: newMemberForm.designation === 'president' ? null : (newMemberForm.standingCommittee || 'development'),
+      phone: (newMemberForm.phone || '').trim() || '9447000000',
       bankDetails: {
-        accountNo: newMemberForm.bankDetails.accountNo.trim() || '00000000000',
-        ifsc: newMemberForm.bankDetails.ifsc.trim() || 'SBIN0070554',
-        bankName: newMemberForm.bankDetails.bankName.trim() || 'State Bank of India',
-        branch: newMemberForm.bankDetails.branch.trim() || 'Puduppady'
+        accountNo: (newMemberForm.bankDetails?.accountNo || '').trim() || '00000000000',
+        ifsc: (newMemberForm.bankDetails?.ifsc || '').trim() || 'SBIN0070554',
+        bankName: (newMemberForm.bankDetails?.bankName || '').trim() || 'State Bank of India',
+        branch: (newMemberForm.bankDetails?.branch || '').trim() || 'Puduppady'
       }
     };
 
     onAddMember(memberToAdd);
     setIsAddModalOpen(false);
+    
     // Reset form
     setNewMemberForm({
-      wardNo: members.length + 2,
+      wardNo: assignedWardNo + 1,
       wardName: '',
       name: '',
       englishName: '',
@@ -116,25 +132,50 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
   // Submit Edit
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    if (!editingMember) return;
-    onUpdateMember(editingMember);
+    if (!editingMember || !editingMember.name || !editingMember.name.trim()) return;
+
+    const normalizedEdit = {
+      ...editingMember,
+      wardNo: Number(editingMember.wardNo) || 1,
+      wardName: (editingMember.wardName || '').trim() || `വാർഡ് ${editingMember.wardNo}`,
+      name: editingMember.name.trim(),
+      englishName: (editingMember.englishName || '').trim() || editingMember.name.trim(),
+      designation: editingMember.designation || 'member',
+      designationLabel: editingMember.designationLabel || 'മെമ്പർ (Ward Member)',
+      standingCommittee: editingMember.designation === 'president' ? null : editingMember.standingCommittee,
+      phone: (editingMember.phone || '').trim() || '9447000000',
+      bankDetails: {
+        accountNo: (editingMember.bankDetails?.accountNo || '').trim() || '00000000000',
+        ifsc: (editingMember.bankDetails?.ifsc || '').trim() || 'SBIN0070554',
+        bankName: (editingMember.bankDetails?.bankName || '').trim() || 'State Bank of India',
+        branch: (editingMember.bankDetails?.branch || '').trim() || 'Puduppady'
+      }
+    };
+
+    onUpdateMember(normalizedEdit);
     setEditingMember(null);
   };
 
-  // Filter members
-  const filteredMembers = members.filter(m => {
-    const q = searchQuery.toLowerCase();
+  // Filter members safely
+  const filteredMembers = (members || []).filter(m => {
+    if (!m) return false;
+    const q = (searchQuery || '').toLowerCase().trim();
+    if (!q) {
+      if (filterCommittee === 'ALL') return true;
+      return m.standingCommittee === filterCommittee;
+    }
+
     const matchSearch = 
-      m.name.toLowerCase().includes(q) ||
-      m.englishName.toLowerCase().includes(q) ||
-      m.wardNo.toString().includes(q) ||
-      m.wardName.toLowerCase().includes(q) ||
-      m.designationLabel.toLowerCase().includes(q);
+      (m.name || '').toLowerCase().includes(q) ||
+      (m.englishName || '').toLowerCase().includes(q) ||
+      String(m.wardNo || '').toLowerCase().includes(q) ||
+      (m.wardName || '').toLowerCase().includes(q) ||
+      (m.designationLabel || '').toLowerCase().includes(q);
 
     if (!matchSearch) return false;
     if (filterCommittee === 'ALL') return true;
     return m.standingCommittee === filterCommittee;
-  }).sort((a, b) => a.wardNo - b.wardNo);
+  }).sort((a, b) => (Number(a.wardNo) || 0) - (Number(b.wardNo) || 0));
 
   return (
     <div className="space-y-6">
@@ -183,7 +224,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
 
           {/* Add Member Button */}
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={handleOpenAddModal}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm transition active:scale-95 shrink-0"
           >
             <UserPlus className="w-4 h-4" />
@@ -214,7 +255,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
                         {member.name}
                       </h4>
                       <p className="text-[11px] text-slate-500 truncate">
-                        {member.englishName} • {member.wardName}
+                        {member.englishName || member.name} • {member.wardName || `വാർഡ് ${member.wardNo}`}
                       </p>
                     </div>
                   </div>
@@ -252,7 +293,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
                       പദവി:
                     </span>
                     <span className="font-semibold text-slate-800">
-                      {member.designationLabel}
+                      {member.designationLabel || 'മെമ്പർ (Ward Member)'}
                     </span>
                   </div>
 
@@ -273,7 +314,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
                       ഫോൺ:
                     </span>
-                    <span className="font-mono text-slate-700">{member.phone}</span>
+                    <span className="font-mono text-slate-700">{member.phone || '-'}</span>
                   </div>
 
                   {/* Bank Details */}
@@ -283,9 +324,9 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
                       ബാങ്ക് വിവരങ്ങൾ (DBT):
                     </div>
                     <div className="bg-slate-50 p-2 rounded-xl font-mono text-[10px] text-slate-700 space-y-0.5">
-                      <div className="font-semibold text-slate-900">{member.bankDetails.bankName} ({member.bankDetails.branch})</div>
-                      <div>A/c: {member.bankDetails.accountNo}</div>
-                      <div className="text-slate-500">IFSC: {member.bankDetails.ifsc}</div>
+                      <div className="font-semibold text-slate-900">{member.bankDetails?.bankName || 'State Bank of India'} ({member.bankDetails?.branch || 'Puduppady'})</div>
+                      <div>A/c: {member.bankDetails?.accountNo || '00000000000'}</div>
+                      <div className="text-slate-500">IFSC: {member.bankDetails?.ifsc || 'SBIN0070554'}</div>
                     </div>
                   </div>
 

@@ -275,11 +275,52 @@ export async function fetchGoogleSheetData(webAppUrl = DEFAULT_GOOGLE_SHEET_URL)
     };
   });
 
+  // Normalize members so bankDetails is always safely structured
+  const normalizedMembers = (raw.members || []).map(m => {
+    return {
+      id: String(m.id || `M${String(m.wardNo || 1).padStart(2, '0')}`),
+      wardNo: Number(m.wardNo || 0),
+      wardName: String(m.wardName || `വാർഡ് ${m.wardNo || ''}`).trim(),
+      name: String(m.name || '').trim(),
+      englishName: String(m.englishName || m.name || '').trim(),
+      designation: String(m.designation || 'member'),
+      designationLabel: String(m.designationLabel || 'മെമ്പർ (Ward Member)'),
+      standingCommittee: m.standingCommittee || null,
+      phone: String(m.phone || '9447000000'),
+      bankDetails: {
+        accountNo: String(m.bankDetails?.accountNo || m.accountNo || '').trim(),
+        ifsc: String(m.bankDetails?.ifsc || m.ifsc || 'SBIN0070554').trim(),
+        bankName: String(m.bankDetails?.bankName || m.bankName || 'State Bank of India').trim(),
+        branch: String(m.bankDetails?.branch || m.branch || 'Puduppady').trim()
+      }
+    };
+  });
+
+  // Normalize rates
+  const normalizedRates = raw.rates ? {
+    sittingFeePerMeeting: Number(raw.rates.sittingFeePerMeeting) || 250,
+    monthlySittingFeeCeiling: Number(raw.rates.monthlySittingFeeCeiling) || 1250,
+    honorarium: {
+      president: 13200,
+      vice_president: 10600,
+      sc_chairperson: 9400,
+      member: 8200,
+      ...(raw.rates.honorarium || {})
+    },
+    phoneAllowance: {
+      president: 1000,
+      vice_president: 750,
+      sc_chairperson: 500,
+      member: 400,
+      ...(raw.rates.phoneAllowance || {})
+    }
+  } : null;
+
   return {
-    members: raw.members || [],
+    members: normalizedMembers,
     meetings: normalizedMeetings,
     attendance: raw.attendance || {},
-    rates: raw.rates || null
+    rates: normalizedRates
   };
 }
 

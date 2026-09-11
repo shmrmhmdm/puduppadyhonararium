@@ -24,21 +24,21 @@ export default function PayrollSummary({
     .filter(m => m.monthYear === selectedMonth)
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  const memberStats = members.map(m => ({
+  const memberStats = (members || []).map(m => ({
     member: m,
     ...calculateMemberMonthlyFees(m, monthMeetings, attendance, rates)
   }));
 
-  const totalFixedHonorarium = memberStats.reduce((sum, m) => sum + m.fixedHonorarium, 0);
-  const totalSittingFee = memberStats.reduce((sum, m) => sum + m.admissibleSittingFee, 0);
-  const totalEarnedSittingFee = memberStats.reduce((sum, m) => sum + m.earnedSittingFee, 0);
-  const totalExcessCapped = memberStats.reduce((sum, m) => sum + m.excessCapped, 0);
-  const totalPhoneAllowance = memberStats.reduce((sum, m) => sum + m.phoneAllowance, 0);
-  const grandTotalPayable = memberStats.reduce((sum, m) => sum + m.netPayable, 0);
+  const totalFixedHonorarium = memberStats.reduce((sum, m) => sum + (m.fixedHonorarium || 0), 0);
+  const totalSittingFee = memberStats.reduce((sum, m) => sum + (m.admissibleSittingFee || 0), 0);
+  const totalEarnedSittingFee = memberStats.reduce((sum, m) => sum + (m.earnedSittingFee || 0), 0);
+  const totalExcessCapped = memberStats.reduce((sum, m) => sum + (m.excessCapped || 0), 0);
+  const totalPhoneAllowance = memberStats.reduce((sum, m) => sum + (m.phoneAllowance || 0), 0);
+  const grandTotalPayable = memberStats.reduce((sum, m) => sum + (m.netPayable || 0), 0);
 
   // Group by Bank for disbursement batching
   const bankDisbursement = memberStats.reduce((acc, curr) => {
-    const bank = curr.member.bankDetails.bankName || 'Other Bank';
+    const bank = curr.member?.bankDetails?.bankName || 'State Bank of India';
     if (!acc[bank]) {
       acc[bank] = { count: 0, total: 0, members: [] };
     }
@@ -47,6 +47,8 @@ export default function PayrollSummary({
     acc[bank].members.push(curr);
     return acc;
   }, {});
+
+  const totalBanksCount = Object.keys(bankDisbursement).length;
 
   return (
     <div className="space-y-6">
@@ -62,7 +64,7 @@ export default function PayrollSummary({
               {formatMonthYearMalayalam(selectedMonth)}
             </h2>
             <p className="text-xs text-emerald-200/80 mt-1">
-              പുതുപ്പാടി ഗ്രാമപഞ്ചായത്ത് 24 ഭരണസമിതി അംഗങ്ങളുടെ ഓണറേറിയം സ്റ്റേറ്റ്മെന്റ്
+              പുതുപ്പാടി ഗ്രാമപഞ്ചായത്ത് {members.length} ഭരണസമിതി അംഗങ്ങളുടെ ഓണറേറിയം സ്റ്റേറ്റ്മെന്റ്
             </p>
           </div>
 
@@ -72,7 +74,7 @@ export default function PayrollSummary({
               {formatINR(grandTotalPayable)}
             </div>
             <span className="text-[11px] text-emerald-200/70">
-              24 വാർഡ് അംഗങ്ങൾ • {monthMeetings.length} യോഗങ്ങൾ
+              {members.length} വാർഡ് അംഗങ്ങൾ • {monthMeetings.length} യോഗങ്ങൾ
             </span>
           </div>
         </div>
@@ -125,7 +127,7 @@ export default function PayrollSummary({
             {formatINR(totalPhoneAllowance)}
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            24 അംഗങ്ങൾക്കുള്ള ഔദ്യോഗിക ഫോൺ ചിലവ്
+            {members.length} അംഗങ്ങൾക്കുള്ള ഔദ്യോഗിക ഫോൺ ചിലവ്
           </p>
         </div>
 
@@ -137,7 +139,7 @@ export default function PayrollSummary({
             </div>
           </div>
           <div className="text-xl font-bold text-slate-900 mt-2">
-            3 ബാങ്കുകൾ
+            {totalBanksCount} ബാങ്കുകൾ
           </div>
           <p className="text-xs text-slate-500 mt-1">
             SBI, Kerala Gramin Bank, Canara Bank

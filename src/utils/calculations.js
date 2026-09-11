@@ -27,15 +27,36 @@ export function isMemberEligibleForMeeting(member, meeting) {
 /**
  * Calculate attendance counts and fee breakdown for a member in a specific month
  */
-export function calculateMemberMonthlyFees(member, meetingsForMonth, attendanceMap, rates = STATUTORY_RATES) {
+export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attendanceMap = {}, rates = STATUTORY_RATES) {
   let boardAttended = 0;
   let scAttended = 0;
   let totalBoardEligible = 0;
   let totalScEligible = 0;
 
-  meetingsForMonth.forEach(meeting => {
+  if (!member) {
+    return {
+      boardAttended: 0,
+      scAttended: 0,
+      totalAttended: 0,
+      totalBoardEligible: 0,
+      totalScEligible: 0,
+      sittingFeePerMeeting: 250,
+      earnedSittingFee: 0,
+      monthlyCeiling: 1250,
+      admissibleSittingFee: 0,
+      excessCapped: 0,
+      fixedHonorarium: 8200,
+      phoneAllowance: 400,
+      grossPayable: 8600,
+      tdsDeduction: 0,
+      netPayable: 8600
+    };
+  }
+
+  (meetingsForMonth || []).forEach(meeting => {
+    if (!meeting) return;
     const isEligible = isMemberEligibleForMeeting(member, meeting);
-    const isAttended = Boolean(attendanceMap[meeting.id]?.[member.id]);
+    const isAttended = Boolean(attendanceMap?.[meeting.id]?.[member.id]);
 
     if (meeting.type === 'Board Meeting') {
       totalBoardEligible += 1;
@@ -47,14 +68,18 @@ export function calculateMemberMonthlyFees(member, meetingsForMonth, attendanceM
   });
 
   const totalAttended = boardAttended + scAttended;
-  const sittingFeePerMeeting = rates.sittingFeePerMeeting || 250;
+  const sittingFeePerMeeting = Number(rates?.sittingFeePerMeeting) || 250;
   const earnedSittingFee = totalAttended * sittingFeePerMeeting;
-  const monthlyCeiling = rates.monthlySittingFeeCeiling || 1250;
+  const monthlyCeiling = Number(rates?.monthlySittingFeeCeiling) || 1250;
   const admissibleSittingFee = Math.min(earnedSittingFee, monthlyCeiling);
   const excessCapped = Math.max(0, earnedSittingFee - monthlyCeiling);
 
-  const fixedHonorarium = rates.honorarium[member.designation] || 8200;
-  const phoneAllowance = rates.phoneAllowance[member.designation] || 400;
+  const designationKey = member.designation || 'member';
+  const honorariumMap = rates?.honorarium || STATUTORY_RATES.honorarium;
+  const phoneMap = rates?.phoneAllowance || STATUTORY_RATES.phoneAllowance;
+
+  const fixedHonorarium = Number(honorariumMap?.[designationKey]) || STATUTORY_RATES.honorarium[designationKey] || 8200;
+  const phoneAllowance = Number(phoneMap?.[designationKey]) || STATUTORY_RATES.phoneAllowance[designationKey] || 400;
   const grossPayable = fixedHonorarium + admissibleSittingFee + phoneAllowance;
   const tdsDeduction = 0; // Standard Grama Panchayat honorarium exemption under statutory limit
   const netPayable = grossPayable - tdsDeduction;

@@ -60,17 +60,19 @@ export default function AttendanceMatrix({
 
   // Filter and sort members
   const filteredMembers = useMemo(() => {
-    return members.filter(m => {
-      // Search query filter (name, ward no, designation)
-      const q = searchQuery.toLowerCase();
-      const matchSearch = 
-        m.name.toLowerCase().includes(q) ||
-        m.englishName.toLowerCase().includes(q) ||
-        m.wardNo.toString().includes(q) ||
-        m.wardName.toLowerCase().includes(q) ||
-        m.designationLabel.toLowerCase().includes(q);
+    return (members || []).filter(m => {
+      if (!m) return false;
+      const q = (searchQuery || '').toLowerCase().trim();
+      if (q) {
+        const matchSearch = 
+          (m.name || '').toLowerCase().includes(q) ||
+          (m.englishName || '').toLowerCase().includes(q) ||
+          String(m.wardNo || '').toLowerCase().includes(q) ||
+          (m.wardName || '').toLowerCase().includes(q) ||
+          (m.designationLabel || '').toLowerCase().includes(q);
 
-      if (!matchSearch) return false;
+        if (!matchSearch) return false;
+      }
 
       // Committee filter on members
       if (committeeFilter === 'ALL' || committeeFilter === 'BOARD_ONLY') {
