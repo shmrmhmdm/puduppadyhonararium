@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  Lock, 
   User, 
   Eye, 
   EyeOff, 
   ShieldCheck, 
-  Building2, 
-  CheckCircle2, 
   AlertCircle,
   KeyRound,
-  ArrowRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
@@ -58,12 +54,6 @@ export default function LoginScreen({ users, onLogin }) {
     }, 400);
   };
 
-  const handleFillAdmin = () => {
-    setUsername('admin');
-    setPassword('admin123');
-    setErrorMsg('');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100">
       
@@ -71,7 +61,7 @@ export default function LoginScreen({ users, onLogin }) {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-72 h-72 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header Ribbon */}
         <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-slate-900 p-6 text-center border-b border-emerald-500/30 relative">
@@ -102,7 +92,7 @@ export default function LoginScreen({ users, onLogin }) {
               <span>സുരക്ഷിത ലോഗിൻ (Portal Login)</span>
             </h2>
             <p className="text-xs text-slate-400">
-              പ്രവേശനത്തിന് നിങ്ങളുടെ യൂസർ ഐഡിയും പാസ്‌വേഡും നൽകുക
+              പ്രവേശനത്തിന് യൂസർനെയിമും പാസ്‌വേഡും നൽകുക
             </p>
           </div>
 
@@ -126,7 +116,7 @@ export default function LoginScreen({ users, onLogin }) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. admin, clerk1..."
+                  placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-medium"
@@ -144,7 +134,7 @@ export default function LoginScreen({ users, onLogin }) {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-3.5 pr-10 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-medium"
@@ -152,7 +142,7 @@ export default function LoginScreen({ users, onLogin }) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-200 p-1"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-200 p-1 cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -172,53 +162,13 @@ export default function LoginScreen({ users, onLogin }) {
                 </>
               ) : (
                 <>
-                  <span>പോർട്ടലിലേക്ക് പ്രവേശിക്കുക</span>
+                  <span>ലോഗിൻ ചെയ്യുക</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
 
           </form>
-
-          {/* Quick Default Admin Credentials Card */}
-          <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 space-y-2 text-[11px]">
-            <div className="flex items-center justify-between text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-              <span className="flex items-center gap-1.5 text-emerald-400">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>ഡിഫോൾട്ട് അഡ്മിൻ ലോഗിൻ:</span>
-              </span>
-              <button
-                type="button"
-                onClick={handleFillAdmin}
-                className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline cursor-pointer"
-              >
-                ഓട്ടോ ഫിൽ
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-slate-300 font-mono text-[11px] bg-slate-900/80 p-2 rounded-xl border border-slate-700/40">
-              <div>User: <span className="text-emerald-300 font-bold">admin</span></div>
-              <div>Pass: <span className="text-emerald-300 font-bold">admin123</span></div>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              ലോഗിൻ ചെയ്ത ശേഷം അഡ്മിന് പുതിയ ക്ലർക്ക് / വ്യൂവർ അക്കൗണ്ടുകൾ ഉണ്ടാക്കാം.
-            </p>
-          </div>
-
-          {/* Roles Legend */}
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-center gap-4 text-[10px] text-slate-400">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>Admin (പൂർണ്ണ അനുമതി)</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
-              <span>Clerk (ഹാജർ എൻട്രി)</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />
-              <span>Viewer (കാണാൻ മാത്രം)</span>
-            </span>
-          </div>
 
         </div>
 
