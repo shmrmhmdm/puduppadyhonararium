@@ -104,8 +104,8 @@ export default function Sidebar({
             <h1 className="text-sm sm:text-base font-black tracking-tight text-white leading-tight whitespace-normal break-words">
               പുതുപ്പാടി ഗ്രാമപഞ്ചായത്ത്
             </h1>
-            <p className="text-[11px] text-emerald-400 font-bold mt-0.5">
-              24 വാർഡുകൾ • ഓണറേറിയം
+            <p className="text-[11px] text-emerald-400 font-bold tracking-wide mt-0.5">
+              Honararium Bill Maker
             </p>
           </div>
         </div>
