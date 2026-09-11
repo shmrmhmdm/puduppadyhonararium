@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { STANDING_COMMITTEES, STATUTORY_RATES } from '../data/initialData';
 import { calculateMemberMonthlyFees, formatINR, formatMonthYearMalayalam, isMemberEligibleForMeeting } from '../utils/calculations';
+import logoImg from '../assets/logo.png';
 
 export default function AcquittanceRoll({
   members,
@@ -136,7 +137,7 @@ export default function AcquittanceRoll({
         <div className="flex items-center justify-between pb-4 border-b-2 border-slate-900 mb-4 gap-4">
           <div className="w-16 h-16 rounded-xl bg-white p-1 border border-slate-300 flex items-center justify-center shrink-0 shadow-xs">
             <img 
-              src="/logo.png" 
+              src={logoImg} 
               alt="Kerala Panchayat Emblem" 
               className="w-full h-full object-contain" 
             />

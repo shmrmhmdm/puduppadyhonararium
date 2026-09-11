@@ -18,6 +18,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { formatMonthYearMalayalam, formatINR } from '../utils/calculations';
+import logoImg from '../assets/logo.png';
 
 export default function Sidebar({
   activeTab,
@@ -94,7 +95,7 @@ export default function Sidebar({
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-xl bg-white p-1 shadow-md border border-slate-700/50 flex items-center justify-center shrink-0">
             <img 
-              src="/logo.png" 
+              src={logoImg} 
               alt="Puduppady Grama Panchayat Emblem" 
               className="w-full h-full object-contain"
             />
