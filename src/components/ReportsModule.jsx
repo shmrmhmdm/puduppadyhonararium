@@ -49,34 +49,34 @@ export default function ReportsModule({
   // Designation Summary calculations (matching the requested format)
   const designationSummary = useMemo(() => {
     // 1. President
-    const presidentList = memberData.filter(d => d.member.designation === 'president');
-    const presSitting = presidentList.reduce((sum, d) => sum + d.admissibleSittingFee, 0);
-    const presHon = presidentList.reduce((sum, d) => sum + (d.fixedHonorarium + d.phoneAllowance), 0);
+    const presidentList = memberData.filter(d => d.member?.designation === 'president');
+    const presSitting = presidentList.reduce((sum, d) => sum + (d.admissibleSittingFee || 0), 0);
+    const presHon = presidentList.reduce((sum, d) => sum + (d.fixedHonorarium || 0), 0);
 
     // 2. Vice President
-    const vpList = memberData.filter(d => d.member.designation === 'vice_president');
-    const vpSitting = vpList.reduce((sum, d) => sum + d.admissibleSittingFee, 0);
-    const vpHon = vpList.reduce((sum, d) => sum + (d.fixedHonorarium + d.phoneAllowance), 0);
+    const vpList = memberData.filter(d => d.member?.designation === 'vice_president');
+    const vpSitting = vpList.reduce((sum, d) => sum + (d.admissibleSittingFee || 0), 0);
+    const vpHon = vpList.reduce((sum, d) => sum + (d.fixedHonorarium || 0), 0);
 
     // 3. Development SC Chairman
-    const devList = memberData.filter(d => d.member.designation === 'sc_chairperson' && d.member.standingCommittee === 'development');
-    const devSitting = devList.reduce((sum, d) => sum + d.admissibleSittingFee, 0);
-    const devHon = devList.reduce((sum, d) => sum + (d.fixedHonorarium + d.phoneAllowance), 0);
+    const devList = memberData.filter(d => d.member?.designation === 'sc_chairperson' && d.member?.standingCommittee === 'development');
+    const devSitting = devList.reduce((sum, d) => sum + (d.admissibleSittingFee || 0), 0);
+    const devHon = devList.reduce((sum, d) => sum + (d.fixedHonorarium || 0), 0);
 
     // 4. Health & Education SC Chairman
-    const healthList = memberData.filter(d => d.member.designation === 'sc_chairperson' && d.member.standingCommittee === 'health_education');
-    const healthSitting = healthList.reduce((sum, d) => sum + d.admissibleSittingFee, 0);
-    const healthHon = healthList.reduce((sum, d) => sum + (d.fixedHonorarium + d.phoneAllowance), 0);
+    const healthList = memberData.filter(d => d.member?.designation === 'sc_chairperson' && d.member?.standingCommittee === 'health_education');
+    const healthSitting = healthList.reduce((sum, d) => sum + (d.admissibleSittingFee || 0), 0);
+    const healthHon = healthList.reduce((sum, d) => sum + (d.fixedHonorarium || 0), 0);
 
     // 5. Welfare SC Chairman
-    const welfareList = memberData.filter(d => d.member.designation === 'sc_chairperson' && d.member.standingCommittee === 'welfare');
-    const welfareSitting = welfareList.reduce((sum, d) => sum + d.admissibleSittingFee, 0);
-    const welfareHon = welfareList.reduce((sum, d) => sum + (d.fixedHonorarium + d.phoneAllowance), 0);
+    const welfareList = memberData.filter(d => d.member?.designation === 'sc_chairperson' && d.member?.standingCommittee === 'welfare');
+    const welfareSitting = welfareList.reduce((sum, d) => sum + (d.admissibleSittingFee || 0), 0);
+    const welfareHon = welfareList.reduce((sum, d) => sum + (d.fixedHonorarium || 0), 0);
 
     // 6. Ward Members (All members with designation === 'member')
-    const membersList = memberData.filter(d => d.member.designation === 'member');
-    const memSitting = membersList.reduce((sum, d) => sum + d.admissibleSittingFee, 0);
-    const memHon = membersList.reduce((sum, d) => sum + (d.fixedHonorarium + d.phoneAllowance), 0);
+    const membersList = memberData.filter(d => d.member?.designation === 'member');
+    const memSitting = membersList.reduce((sum, d) => sum + (d.admissibleSittingFee || 0), 0);
+    const memHon = membersList.reduce((sum, d) => sum + (d.fixedHonorarium || 0), 0);
 
     const rows = [
       {
@@ -194,7 +194,7 @@ export default function ReportsModule({
         d.netPayable
       ]);
     } else {
-      headers = ['Sl No', 'Ward No', 'Member Name', 'Committee', 'Board Attended', 'SC Attended', 'Honorarium', 'Sitting Fee', 'Phone Allowance', 'Net Payable'];
+      headers = ['Sl No', 'Ward No', 'Member Name', 'Committee', 'Board Attended', 'SC Attended', 'Honorarium', 'Sitting Fee', 'Net Payable'];
       rows = filteredMemberData.map(d => [
         d.slNo,
         d.member?.wardNo || 0,
@@ -204,7 +204,6 @@ export default function ReportsModule({
         d.scAttended,
         d.fixedHonorarium,
         d.admissibleSittingFee,
-        d.phoneAllowance,
         d.netPayable
       ]);
     }

@@ -33,7 +33,6 @@ export default function PayrollSummary({
   const totalSittingFee = memberStats.reduce((sum, m) => sum + (m.admissibleSittingFee || 0), 0);
   const totalEarnedSittingFee = memberStats.reduce((sum, m) => sum + (m.earnedSittingFee || 0), 0);
   const totalExcessCapped = memberStats.reduce((sum, m) => sum + (m.excessCapped || 0), 0);
-  const totalPhoneAllowance = memberStats.reduce((sum, m) => sum + (m.phoneAllowance || 0), 0);
   const grandTotalPayable = memberStats.reduce((sum, m) => sum + (m.netPayable || 0), 0);
 
   // Group by Bank for disbursement batching
@@ -80,8 +79,8 @@ export default function PayrollSummary({
         </div>
       </div>
 
-      {/* 4 Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 3 Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
@@ -114,21 +113,6 @@ export default function PayrollSummary({
               <span className="text-amber-600 font-medium">₹{totalExcessCapped} സീലിംഗ് പരിധി</span>
             )}
           </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">ടെലിഫോൺ അലവൻസ്</span>
-            <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
-              <DollarSign className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-xl font-bold font-mono text-purple-800 mt-2">
-            {formatINR(totalPhoneAllowance)}
-          </div>
-          <p className="text-xs text-slate-500 mt-1">
-            {members.length} അംഗങ്ങൾക്കുള്ള ഔദ്യോഗിക ഫോൺ ചിലവ്
-          </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">

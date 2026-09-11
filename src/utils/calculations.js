@@ -46,10 +46,10 @@ export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attend
       admissibleSittingFee: 0,
       excessCapped: 0,
       fixedHonorarium: 8200,
-      phoneAllowance: 400,
-      grossPayable: 8600,
+      phoneAllowance: 0,
+      grossPayable: 8200,
       tdsDeduction: 0,
-      netPayable: 8600
+      netPayable: 8200
     };
   }
 
@@ -76,11 +76,10 @@ export function calculateMemberMonthlyFees(member, meetingsForMonth = [], attend
 
   const designationKey = member.designation || 'member';
   const honorariumMap = rates?.honorarium || STATUTORY_RATES.honorarium;
-  const phoneMap = rates?.phoneAllowance || STATUTORY_RATES.phoneAllowance;
 
   const fixedHonorarium = Number(honorariumMap?.[designationKey]) || STATUTORY_RATES.honorarium[designationKey] || 8200;
-  const phoneAllowance = Number(phoneMap?.[designationKey]) || STATUTORY_RATES.phoneAllowance[designationKey] || 400;
-  const grossPayable = fixedHonorarium + admissibleSittingFee + phoneAllowance;
+  const phoneAllowance = 0; // Telephone allowance excluded as requested
+  const grossPayable = fixedHonorarium + admissibleSittingFee;
   const tdsDeduction = 0; // Standard Grama Panchayat honorarium exemption under statutory limit
   const netPayable = grossPayable - tdsDeduction;
 

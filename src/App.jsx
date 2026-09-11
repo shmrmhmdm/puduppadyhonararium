@@ -88,10 +88,6 @@ export default function App() {
           honorarium: {
             ...STATUTORY_RATES.honorarium,
             ...(parsed.honorarium || {})
-          },
-          phoneAllowance: {
-            ...STATUTORY_RATES.phoneAllowance,
-            ...(parsed.phoneAllowance || {})
           }
         };
       }

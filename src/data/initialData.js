@@ -16,12 +16,6 @@ export const STATUTORY_RATES = {
     vice_president: 10600,
     sc_chairperson: 9400,
     member: 8200,
-  },
-  phoneAllowance: {
-    president: 1000,
-    vice_president: 750,
-    sc_chairperson: 500,
-    member: 400,
   }
 };
 

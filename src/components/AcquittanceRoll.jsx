@@ -37,7 +37,6 @@ export default function AcquittanceRoll({
 
   const grandTotalHonorarium = memberRows.reduce((sum, r) => sum + r.fixedHonorarium, 0);
   const grandTotalSittingFee = memberRows.reduce((sum, r) => sum + r.admissibleSittingFee, 0);
-  const grandTotalPhone = memberRows.reduce((sum, r) => sum + r.phoneAllowance, 0);
   const grandTotalNet = memberRows.reduce((sum, r) => sum + r.netPayable, 0);
 
   // CSV Export handler
@@ -54,7 +53,6 @@ export default function AcquittanceRoll({
       'Total Attended',
       'Fixed Honorarium (Rs)',
       'Admissible Sitting Fee (Rs)',
-      'Phone Allowance (Rs)',
       'Net Payable (Rs)',
       'Bank Account Number',
       'IFSC Code',
@@ -73,7 +71,6 @@ export default function AcquittanceRoll({
       r.totalAttended,
       r.fixedHonorarium,
       r.admissibleSittingFee,
-      r.phoneAllowance,
       r.netPayable,
       `"${r.member?.bankDetails?.accountNo || ''}"`,
       r.member?.bankDetails?.ifsc || '',
@@ -191,7 +188,6 @@ export default function AcquittanceRoll({
                 <th className="p-2 text-right border border-slate-300">ഓണറേറിയം (Honorarium)</th>
                 <th className="p-2 text-center border border-slate-300">ഹാജർ (Mtg Attended)</th>
                 <th className="p-2 text-right border border-slate-300">സിറ്റിംഗ് ഫീസ് (Sitting Fee)</th>
-                <th className="p-2 text-right border border-slate-300">ഫോൺ അലവൻസ് (Phone)</th>
                 <th className="p-2 text-right font-bold bg-slate-200/80 border border-slate-300">അർഹമായ തുക (Net Payable)</th>
                 <th className="p-2 border border-slate-300">ബാങ്ക് അക്കൗണ്ട് & IFSC</th>
                 <th className="p-2 text-center w-28 border border-slate-300">കൈപ്പറ്റിയ ഒപ്പ് (Signature)</th>
@@ -216,7 +212,6 @@ export default function AcquittanceRoll({
                     </span>
                   </td>
                   <td className="p-1.5 text-right font-mono border border-slate-300">₹{r.admissibleSittingFee.toLocaleString('en-IN')}</td>
-                  <td className="p-1.5 text-right font-mono border border-slate-300">₹{r.phoneAllowance.toLocaleString('en-IN')}</td>
                   <td className="p-1.5 text-right font-mono font-bold bg-slate-50 border border-slate-300 text-slate-950">
                     ₹{r.netPayable.toLocaleString('en-IN')}
                   </td>
@@ -247,9 +242,6 @@ export default function AcquittanceRoll({
                 </td>
                 <td className="p-2 text-right font-mono border border-slate-400">
                   ₹{grandTotalSittingFee.toLocaleString('en-IN')}
-                </td>
-                <td className="p-2 text-right font-mono border border-slate-400">
-                  ₹{grandTotalPhone.toLocaleString('en-IN')}
                 </td>
                 <td className="p-2 text-right font-mono font-black text-xs border border-slate-400 text-emerald-950">
                   {formatINR(grandTotalNet)}

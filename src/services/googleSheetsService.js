@@ -306,13 +306,6 @@ export async function fetchGoogleSheetData(webAppUrl = DEFAULT_GOOGLE_SHEET_URL)
       sc_chairperson: 9400,
       member: 8200,
       ...(raw.rates.honorarium || {})
-    },
-    phoneAllowance: {
-      president: 1000,
-      vice_president: 750,
-      sc_chairperson: 500,
-      member: 400,
-      ...(raw.rates.phoneAllowance || {})
     }
   } : null;
 
