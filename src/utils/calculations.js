@@ -4,14 +4,16 @@ import { STATUTORY_RATES } from '../data/initialData';
  * Checks if a member is eligible to attend a specific meeting
  */
 export function isMemberEligibleForMeeting(member, meeting) {
+  if (!member || !meeting) return false;
+
   if (meeting.type === 'Board Meeting') {
     return true; // All members (President, VP, SC Chairs, Ward Members) are Board members
   }
 
   if (meeting.type === 'Standing Committee Meeting') {
-    // President does not attend SC meetings in Kerala Panchayats
+    // President can attend any Standing Committee meeting (Ex-officio) and is eligible for sitting fee
     if (member.designation === 'president') {
-      return false;
+      return true;
     }
     // Vice President chairs finance SC
     if (member.designation === 'vice_president' && meeting.committee === 'finance') {

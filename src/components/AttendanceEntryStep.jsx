@@ -69,6 +69,7 @@ export default function AttendanceEntryStep({
     if (!currentMeeting) {
       if (activeCategory === 'BOARD') return members;
       return members.filter(m => {
+        if (m.designation === 'president') return true;
         if (selectedCommittee === 'finance') return m.standingCommittee === 'finance' || m.designation === 'vice_president';
         return m.standingCommittee === selectedCommittee;
       });

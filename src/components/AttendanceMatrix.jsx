@@ -78,7 +78,10 @@ export default function AttendanceMatrix({
       if (committeeFilter === 'ALL' || committeeFilter === 'BOARD_ONLY') {
         return true;
       }
-      // If filtering by specific SC, show members belonging to that SC + Vice President (for Finance)
+      // If filtering by specific SC, show President (eligible for all SC) + members belonging to that SC + Vice President (for Finance)
+      if (m.designation === 'president') {
+        return true;
+      }
       if (committeeFilter === 'finance') {
         return m.standingCommittee === 'finance' || m.designation === 'vice_president';
       }
@@ -89,13 +92,13 @@ export default function AttendanceMatrix({
   // Group members if groupByCommittee is active
   const memberGroups = useMemo(() => {
     if (!groupByCommittee) {
-      return [{ id: 'all', title: 'എല്ലാ വാർഡ് അംഗങ്ങളും (All 24 Ward Members)', members: [...filteredMembers].sort((a, b) => a.wardNo - b.wardNo) }];
+      return [{ id: 'all', title: 'എല്ലാ വാർഡ് അംഗങ്ങളും (All Ward Members)', members: [...filteredMembers].sort((a, b) => a.wardNo - b.wardNo) }];
     }
 
     const groups = [
       {
         id: 'leadership',
-        title: 'ഭരണ നേതൃത്വം (President & Ex-Officio)',
+        title: 'ഭരണ നേതൃത്വം (പ്രസിഡന്റ് - എല്ലാ സ്ഥിരംസമിതികളിലും അർഹത)',
         badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
         members: filteredMembers.filter(m => m.designation === 'president')
       },

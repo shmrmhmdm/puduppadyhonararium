@@ -163,6 +163,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
     const q = (searchQuery || '').toLowerCase().trim();
     if (!q) {
       if (filterCommittee === 'ALL') return true;
+      if (m.designation === 'president') return true;
       return m.standingCommittee === filterCommittee;
     }
 
@@ -175,6 +176,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
 
     if (!matchSearch) return false;
     if (filterCommittee === 'ALL') return true;
+    if (m.designation === 'president') return true;
     return m.standingCommittee === filterCommittee;
   }).sort((a, b) => (Number(a.wardNo) || 0) - (Number(b.wardNo) || 0));
 
@@ -309,7 +311,7 @@ export default function MemberManagement({ members, onAddMember, onUpdateMember,
                       സ്ഥിരംസമിതി:
                     </span>
                     <span className="font-semibold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200 text-[11px]">
-                      {scObj ? scObj.name : 'ഭരണ നേതൃത്വം'}
+                      {member.designation === 'president' ? 'എല്ലാ സ്ഥിരംസമിതികളും (Ex-Officio)' : (scObj ? scObj.name : 'ഭരണ നേതൃത്വം')}
                     </span>
                   </div>
 
