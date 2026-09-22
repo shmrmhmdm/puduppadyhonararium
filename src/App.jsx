@@ -20,6 +20,41 @@ import {
 import { calculateMemberMonthlyFees } from './utils/calculations';
 import { fetchGoogleSheetData, syncDataToGoogleSheet, DEFAULT_GOOGLE_SHEET_URL } from './services/googleSheetsService';
 
+// Helper to load from primary localStorage key or fallback to any earlier version key
+function getLocalStorageWithFallback(primaryKey, prefixKey) {
+  try {
+    // 1. Check primary key
+    const primary = localStorage.getItem(primaryKey);
+    if (primary) {
+      const parsed = JSON.parse(primary);
+      if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) {
+        return parsed;
+      }
+    }
+    // 2. Scan all localStorage keys for any earlier versions (v1..v10, etc.)
+    const allKeys = Object.keys(localStorage);
+    const matchingKeys = allKeys
+      .filter(k => k.startsWith(prefixKey))
+      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+
+    for (const k of matchingKeys) {
+      try {
+        const val = localStorage.getItem(k);
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) {
+            console.log(`[Auto-Recovery] Successfully recovered data from older storage key [${k}]`);
+            return parsed;
+          }
+        }
+      } catch (err) {}
+    }
+  } catch (e) {
+    console.warn('Error during fallback recovery:', e);
+  }
+  return null;
+}
+
 export default function App() {
   // LocalStorage keys
   const LS_MEMBERS_KEY = 'puduppady_members_v11';
@@ -41,15 +76,12 @@ export default function App() {
     }
   });
 
-  // Users State (Admin, Clerk, Viewer)
+  // Users State (Admin, Clerk, Viewer) - with fallback recovery
   const [users, setUsers] = useState(() => {
     try {
-      const saved = localStorage.getItem(LS_USERS_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
+      const saved = getLocalStorageWithFallback(LS_USERS_KEY, 'puduppady_users');
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        return saved;
       }
     } catch (e) {
       console.warn('Error reading saved users:', e);
@@ -57,31 +89,28 @@ export default function App() {
     return INITIAL_USERS;
   });
 
-  // Members state with safe normalization
+  // Members state with safe normalization & fallback recovery
   const [members, setMembers] = useState(() => {
     try {
-      const saved = localStorage.getItem(LS_MEMBERS_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.map(m => ({
-            id: String(m.id || `M${String(m.wardNo || 1).padStart(2, '0')}`),
-            wardNo: Number(m.wardNo) || 1,
-            wardName: String(m.wardName || `വാർഡ് ${m.wardNo || 1}`),
-            name: String(m.name || ''),
-            englishName: String(m.englishName || m.name || ''),
-            designation: String(m.designation || 'member'),
-            designationLabel: String(m.designationLabel || 'മെമ്പർ (Ward Member)'),
-            standingCommittee: m.standingCommittee || null,
-            phone: String(m.phone || '9447000000'),
-            bankDetails: {
-              accountNo: String(m.bankDetails?.accountNo || m.accountNo || ''),
-              ifsc: String(m.bankDetails?.ifsc || m.ifsc || 'SBIN0070554'),
-              bankName: String(m.bankDetails?.bankName || m.bankName || 'State Bank of India'),
-              branch: String(m.bankDetails?.branch || m.branch || 'Puduppady')
-            }
-          }));
-        }
+      const saved = getLocalStorageWithFallback(LS_MEMBERS_KEY, 'puduppady_members');
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        return saved.map(m => ({
+          id: String(m.id || `M${String(m.wardNo || 1).padStart(2, '0')}`),
+          wardNo: Number(m.wardNo) || 1,
+          wardName: String(m.wardName || `വാർഡ് ${m.wardNo || 1}`),
+          name: String(m.name || ''),
+          englishName: String(m.englishName || m.name || ''),
+          designation: String(m.designation || 'member'),
+          designationLabel: String(m.designationLabel || 'മെമ്പർ (Ward Member)'),
+          standingCommittee: m.standingCommittee || null,
+          phone: String(m.phone || '9447000000'),
+          bankDetails: {
+            accountNo: String(m.bankDetails?.accountNo || m.accountNo || ''),
+            ifsc: String(m.bankDetails?.ifsc || m.ifsc || 'SBIN0070554'),
+            bankName: String(m.bankDetails?.bankName || m.bankName || 'State Bank of India'),
+            branch: String(m.bankDetails?.branch || m.branch || 'Puduppady')
+          }
+        }));
       }
     } catch (e) {
       console.warn('Error reading saved members:', e);
@@ -91,8 +120,8 @@ export default function App() {
 
   const [meetings, setMeetings] = useState(() => {
     try {
-      const saved = localStorage.getItem(LS_MEETINGS_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_MEETINGS;
+      const saved = getLocalStorageWithFallback(LS_MEETINGS_KEY, 'puduppady_meetings');
+      return (saved && Array.isArray(saved)) ? saved : INITIAL_MEETINGS;
     } catch (e) {
       return INITIAL_MEETINGS;
     }
@@ -100,8 +129,8 @@ export default function App() {
 
   const [attendance, setAttendance] = useState(() => {
     try {
-      const saved = localStorage.getItem(LS_ATTENDANCE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_ATTENDANCE;
+      const saved = getLocalStorageWithFallback(LS_ATTENDANCE_KEY, 'puduppady_attendance');
+      return (saved && typeof saved === 'object') ? saved : INITIAL_ATTENDANCE;
     } catch (e) {
       return INITIAL_ATTENDANCE;
     }
